@@ -18,6 +18,31 @@ class php-httpd::centos::base
             notify => Service['httpd'];
     }
 
+    file {
+        'php-error-log':
+            mode => 770,
+            owner => 'apache',
+            group => 'apache',
+            path => '/var/log/php_errors',
+            ensure => present;
+
+        'php-session-dir':
+            mode => 770,
+            owner => 'apache',
+            group => 'apache',
+            path => '/var/lib/php/session',
+            ensure => directory,
+            require => [Package['php']];
+
+        'httpd-php-conf':
+            mode => 644,
+            owner => "root",
+            group => "root",
+            path => "/etc/httpd/conf.d/php.conf",
+            content => template('php-httpd/centos/php.erb'),
+            require => [Package['httpd'], Package['php']];
+    }
+
     # Make sure that any change to PHP common restarts Apache
     Package["${php::centos::config::php_prefix}-common-${php::centos::config::php_version}"] ~> Service['httpd']
 
